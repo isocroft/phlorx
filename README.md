@@ -31,12 +31,12 @@ Load Phlorx afterwards like so...
  Code to heart's content!
 
 
-`<script type="text/javascript"> 
+`<pre><script type="text/javascript"> 
        var sequenceStream = Phlorx.sequentially(2000, [10, 20, 30, 40, 50]).map(function(num){ return Math.pow(num, 2); });
        sequenceStream.subscribe(function(sqrd_num){
            alert(sqrd_num);
        });
-  </script>`
+  </script></pre>`
 
 
 ## Contributing
