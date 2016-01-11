@@ -17,28 +17,39 @@ library in production level. It is still in *Alpha* stage of release. Only 3 sim
 **Step 1** 
 Load jQuery into your web project like so...
 
-`<script type="text/javascript" src="path/to/jquery/lib"></script>`
+```
+<script type="text/javascript" src="path/to/jquery/lib"></script>
+
+```
 
 
 **Step2**
 Load Phlorx afterwards like so...
 
 
-`<script type="text/javascript" src="path/to/phlorx/lib"></script>`
+```
+<script type="text/javascript" src="path/to/phlorx/lib"></script>
+
+```
 
 
 **Step 3**
  Code to heart's content!
 
 
-`<pre><script type="text/javascript"> 
-       var sequenceStream = Phlorx.sequentially(2000, [10, 20, 30, 40, 50]).map(function(num){ return Math.pow(num, 2); });
+```
+<script type="text/javascript"> 
+       var sequenceStream = Phlorx.sequentially(2000, [10, 20, 30, 40, 50]).map(function(num){ 
+              return Math.pow(num, 2); 
+           });
        sequenceStream.subscribe(function(sqrd_num){
            alert(sqrd_num);
        });
-  </script></pre>`
+  </script>
+  
+  ```
 
 
-## Contributing
+## Contributing & Bug reports
 
-I am open to start recieving PRs on code enhancements and changes. You can also contact me for more info via mail isocroft@gmail.com. 
+I am open to start recieving PRs on code enhancements and changes. You can also contact me for more info via mail isocroft@gmail.com. Also send bug report to the mail above and use the issue tracker. With Bugs, please endeavour to additionally post a PR with code that reproduces the bug. Thank you. 
