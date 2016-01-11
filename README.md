@@ -17,25 +17,25 @@ library in production level. It is still in <i>Alpha</i> stage of release. Only 
 *Step 1* 
 Load jQuery into your web project like so...
 
-<pre>
+
 <code>
  <script type="text/javascript" src="path/to/jquery/lib"></script>
 </code>
-</pre>
+
 
 *Step2*
 Load Phlorx afterwards like so...
 
-<pre>
+
 <code>
  <script type="text/javascript" src="path/to/phlorx/lib"></script>
 </code>
-</pre>
+
 
 *Step 3*
  Code to heart's content!
 
-<pre>
+
 <code>
   <script type="text/javascript">
        var sequenceStream = Phlorx.sequentially(2000, [10, 20, 30, 40, 50]).map(function(num){ return Math.pow(num, 2); });
@@ -44,7 +44,7 @@ Load Phlorx afterwards like so...
        });
   </script>
 </code>
-</pre>
+
 
 ## Contributing
 
