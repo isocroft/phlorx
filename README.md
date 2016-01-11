@@ -53,3 +53,8 @@ Load Phlorx afterwards like so...
 ## Contributing & Bug reports
 
 I am open to start recieving PRs on code enhancements and changes. You can also contact me for more info via mail isocroft@gmail.com. Also send bug report to the mail above and use the issue tracker. With Bugs, please endeavour to additionally post a PR with code that reproduces the bug. Thank you. 
+
+## Extras
+
+> Code is 18KB in size (not minified)
+  Code is 7KB in size (minified)
