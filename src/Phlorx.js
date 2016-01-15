@@ -26,7 +26,7 @@ window.Phlorx = (function(w, $, factory){
 		
 	    var Phlorx = {};	
 	   
-	    var DataStream = factory($h, $s);
+	    var DataStream = factory($h, $s, w);
    
         $.fn.getStream = function(event){
             return new DataStream(event, this); // [this] is a reference to [jQuery.prototype]
@@ -91,7 +91,7 @@ window.Phlorx = (function(w, $, factory){
 
         return Phlorx;
 		 
-}(this, this.jQuery, function(hOwn){
+}(this, this.jQuery, function(hOwn, slice, w){
 
  // Helpers 
  
@@ -364,7 +364,7 @@ window.Phlorx = (function(w, $, factory){
    
      this.queryQueue = function(callback,  context){
                 
-                if(typeof callback == "function"){
+                if(typeof callback != "function"){
 				         throw new Error("first argument must be a function");
 				}				
 				
