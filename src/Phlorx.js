@@ -1,13 +1,13 @@
 /*!
  * @projectname: Phlorx v0.0.2
- * @repo: https://www.github.com/isocroft/phlorx
+ * @repo: https://www.github.com/isocroft/phlorxjs
  * @author(s): Okechukwu Ifeora
- * @contributor(s): none for now...
+ * @contributor(s): -----------
  * @copyright: Copyright (c) 2016 @cdv
  * @license: MIT  
  * @releasedate: 12/01/2016
  *
- * Phlorx is a light-weight, task efficient, fault tolerant JavaScript library
+ * Phlorx is a light-weight, task efficient, JavaScript library
  * for functional reactive programming inspired by Bacon.js &
  * React
  *
@@ -85,6 +85,8 @@ window.Phlorx = (function(w, $, factory){
 						    });
 						   // the notify handler won't be necessary... this is FRP!
 					  }
+			  }else{
+			       throw new TypeError("first argument must be a standard promise object");
 			  } 
 			  return $p_stream;
 		};
@@ -143,7 +145,7 @@ window.Phlorx = (function(w, $, factory){
 				 } else if (obj.forEach) {
 					  
 					  obj.forEach(function(){ 
-				  iterator.apply(this, [].slice.call(arguments)); 
+				  iterator.apply(this, slice.call(arguments)); 
 	  }, context);
 				 } else {
 				  results = {};
@@ -179,7 +181,7 @@ window.Phlorx = (function(w, $, factory){
 						 
                                 emit:function(evt){
 								    
-								    var scope, f=-1, res=[], nx, base = {}, set, data = [].slice.call(arguments, 1), ah = false;
+								    var scope, f=-1, res=[], nx, base = {}, set, data = slice.call(arguments, 1), ah = false;
 									
 									scope = normaliseScope(evt);
 									
@@ -315,7 +317,7 @@ window.Phlorx = (function(w, $, factory){
                      diff =  now - lastTime;
                       var self = this;
                            if(diff >= threshold){
-                               fn.apply(self, [].slice.call(arguments));
+                               fn.apply(self, slice.call(arguments));
                            }
                            lastTime = now;
                 };
@@ -364,7 +366,7 @@ window.Phlorx = (function(w, $, factory){
    
      this.queryQueue = function(callback,  context){
                 
-                if(typeof callback != "function"){
+                if(typeof callback == "function"){
 				         throw new Error("first argument must be a function");
 				}				
 				
