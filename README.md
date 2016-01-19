@@ -1,5 +1,5 @@
 # Phlorx
-Phlorx is a light-weight, task efficient, fault tolerant JavaScript library for functional reactive programming inspired by Bacon.js &  React. It requires jQuery to work
+Phlorx is a light-weight, task efficient, fault tolerant JavaScript library for functional reactive programming inspired by Bacon.js &  RxJS. It requires jQuery to work
 
 ## Browser Support
 
