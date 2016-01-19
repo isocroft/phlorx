@@ -1,7 +1,7 @@
 /*!
  * @projectname: Phlorx v0.0.2
- * @repo: https://www.github.com/isocroft/phlorxjs
- * @author(s): Okechukwu Ifeora
+ * @repo: https://www.github.com/isocroft/phlorx
+ * @author(s): Okechukwu Ifeora (@isocroft)
  * @contributor(s): -----------
  * @copyright: Copyright (c) 2016 @cdv
  * @license: MIT  
@@ -9,7 +9,7 @@
  *
  * Phlorx is a light-weight, task efficient, JavaScript library
  * for functional reactive programming inspired by Bacon.js &
- * React
+ * RxJS
  *
  * It requires jQuery to work properly
  */
@@ -75,7 +75,7 @@ window.Phlorx = (function(w, $, factory){
 
 		Phlorx.fromPromise = function(promise){
 			  var $p_stream = this.createWorkStream(null);
-			  if(typeof promise.promise == "function" && (promise.promise() === promise)){  // according to the Promise/A+ spec, it should be a "immutable"
+			  if(typeof promise.promise == "function" && (typeof promise.promise().then === "function")){  // according to the Promise/A+ spec, it should be a "thenable"
 					  if(typeof promise.then == "function"){
 							promise.then(function(data){
 								  $p_stream.fireAtCore(data); // success
@@ -366,7 +366,7 @@ window.Phlorx = (function(w, $, factory){
    
      this.queryQueue = function(callback,  context){
                 
-                if(typeof callback == "function"){
+                if(typeof callback != "function"){
 				         throw new Error("first argument must be a function");
 				}				
 				
