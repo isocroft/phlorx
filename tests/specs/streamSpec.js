@@ -1,30 +1,97 @@
 /** 
- * @cdv Unit Testing
+ * @title: Unit Testing
  * @project: Phlorx
  */
 
-describe("Phlorx", function() {
 
-  var xStream;
-  var yStream;
-  var zData;
+describe("Phlorx: the different features of a Phlorx stream", function() {
   
-  if(!window.jQuery || (window.jQuery.fn !== window.jQuery.prototype)){
-     alert("Phlorx requires jQuery!");
-	   return;
-  }
-
-  describe("the different features of a Phlorx stream", function() {
+            var xStream;
+			var yStream;
+			var zData;
+			var callb;
+			var val;
+			var stream;
   
 			beforeEach(function() {
 			
-			    xStream = Phlorx.createWorkStream(null);
-				  yStream = Phlorx.createBasicStream("primary");
+			    xStream = Phlorx.workStream(null);
+				yStream = Phlorx.basicStream("primary");
 			  	zData = false;
+				stream = Phlorx.later(1000, 8);
+				callb = function(){
+				    
+				};
+				
+	            jasmine.addMatchers({
+				    toBeAPromise:function(util, customEqualityTesters){
+					      return {
+						       compare:function(actual, expected){
+							        if(!expected){
+									   expected = true;
+									}
+							   
+							        var result = {};
+									
+									result.pass = util.equals((typeof actual.then == "function") // test to see if it's a "thenable"!
+											&& (typeof actual.promise == "function")
+											&& (actual.promise() === actual), expected, customEqualityTesters);
+											
+									if(result.pass){
+									     result.message = "It's a promise";
+									}else{
+									    result.message = "It's not a promise";
+									}
+									
+									return result;
+							   }
+						  
+						  }
+					},
+			        /*toBeInstanceOf:function(util, customEqualityTesters){
+					      return {
+						      compare:function(actual, expected){
+							         (actual instanceof expected);
+							  }
+						  
+						  }
+					},*/
+					toBeAFunction:function(util, customEqualityTesters){
+					    return {
+						       compare:function(actual, expected){
+							        if(!expected){
+									   expected = true;
+									}
+							   
+							        var result = {};
+									
+									result.pass = util.equals((typeof actual == "function"), expected, customEqualityTesters);
+									
+									if(result.pass){
+									     result.message = "It's a function";
+									}else{
+									    result.message = "It's not a function";
+									}
+									
+									return result;
+							   }
+						  
+					    }
+					}
+			    });
 				
 			});
 			
-			it("should replicate as a stream, everytime!", function() {
+			afterEach(function() {
+				 xStream = null;
+				 yStream = null;
+				 zData = null;
+				 callb = null;
+				 val = null;
+				 stream = null;
+			});
+			
+			it("should replicate as a stream, on any given operator call everytime!", function() {
 			
 				   expect(xStream.toString()).toEqual("[object Stream]");
 				
@@ -34,11 +101,11 @@ describe("Phlorx", function() {
 				   
 				   expect((xStream.map(function(data){ return (data % 2); })).toString()).toEqual("[object Stream]");
 				
-      });
+            });
 
-			it("should recieve notification when <q>subscribed</q>", function() {
+			it("should recieve notification when subscribed", function() {
 			   
-				   yStream.subscribe(function(data){
+				   yStream.onValue(function(data){
 				   
 						     zData = data;
 						 
@@ -46,7 +113,7 @@ describe("Phlorx", function() {
 				   
 				   expect(zData).toEqual("primary");
 				   
-				   xStream.subscribe(function(data){
+				   xStream.onValue(function(data){
 				   
 				         zData = data;
 					   
@@ -57,18 +124,47 @@ describe("Phlorx", function() {
 				   expect(zData).toEqual(3);
 
 			});
+			
+			it("should interact with dependencies", function(done){
+			
+			      spyOn(Phlorx, "viaBinder");
+				  
+				  spyOn(Phlorx, "interval");
+				  
+				  Phlorx.viaCallback(callb);
+				  
+				  expect(Phlorx.viaBinder).toHaveBeenCalled();
+				  
+				  expect(Phlorx.viaBinder).toHaveBeenCalledWith(callb);
+				  
+					  
+				  stream.onValue(function(d){
+					    val = d;
+						done();
+			      });
+				  
+				 
+				  //  expect(val).toEqual(8);
+				// expect(Phlorx.interval).toHaveBeenCalled();
+				 
+			
+			});
 
-			it("should have standard interfaces and throw errors where necessary", function() {
+			it("should have/present standard interfaces and throw errors where necessary", function() {
+			
+			      expect(Phlorx.ajax).toBeAFunction();
+				  
+				  expect(Phlorx.ajax()).toBeAPromise();  
 			    
-				  expect(Phlorx.fromPromise).toBeTruthy();
+				  expect(Phlorx.viaPromise).toBeAFunction();
 				  
 				  expect(function(){
 				  
-				        Phlorx.fromPromise();
+				        Phlorx.viaPromise();
 						
 				  }).toThrowError("first argument must be a standard promise object");
 				  
-				  expect(xStream.filter).toBeTruthy();
+				  expect(xStream.filter).toBeAFunction();
 				  
 				  expect(function(){ 
 				  
@@ -76,7 +172,7 @@ describe("Phlorx", function() {
 						
 				  }).toThrowError("first argument must be a function"); 
 				  
-				  expect(yStream.mergeToNew).toBeTruthy();
+				  expect(yStream.mergeToNew).toBeAFunction();
 				  
 				  expect(function(){ 
 				  
@@ -85,7 +181,6 @@ describe("Phlorx", function() {
 				  }).toThrowError("first argument must be a [Stream] object");
 			     
 			});
-	});
 	
 });
     

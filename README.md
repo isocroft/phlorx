@@ -1,50 +1,115 @@
 # Phlorx
-Phlorx is a light-weight, task efficient, fault tolerant JavaScript library for functional reactive programming inspired by Bacon.js &  RxJS. It requires jQuery to work
+
+Phlorx is a light-weight, task efficient, fault tolerant JavaScript library for functional reactive programming inspired by Bacon.js &  RxJS. It does not require jQuery to work. But you could use jQuery with Phlorx if you like.
 
 ## Browser Support
 
-+ IE 7.0+
-+ Firefox 3.5+
-+ Opera 9.0+
++ IE 6.0+
++ Firefox 3.0+
++ Opera 7.0+
 + Chrome 2.0+
 + Safari 3.0+
 
 ## Getting Started
 
-You can start using Phlorx now with your project(s) in experimentation. It is not advised to use this
-library in production level. It is still in *Alpha* stage of release. Only 3 simple step needed.
+You can start using Phlorx now with your project(s) in development. It is now okay to use this
+library in production level. However, it is still in *Beta* stage of release. Only 2 simple steps 
+are needed to get started.
 
 **Step 1** 
-Load jQuery into your web project like so...
+Optionally load _jQuery_ into your web project and then load _Phlorx_ afterwards like so
 
 ```
-<script type="text/javascript" src="path/to/jquery/lib"></script>
-
+<html lang="en">
+   <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width:device-width, initial-scale=1.0">
+        <meta name="X-UA-Compatible" content="IE=Edge">
+        <title>Phlorx App</title>
+        <link type="text/css" rel="stylesheet" href="./style.css">
+        <script type="text/javascript" src="path/to/jquery/lib"></script>
+        <script type="text/javascript" src="path/to/phlorx/lib"></script>
+  </head>
+  <body>
+      <form class="page-container" action="localhost/app" method="post" name="stager" onsubmit="return false;">
+          <input id="box" type="text" autofocus="on" autocomplete="off" autosave="off" tabindex="1">
+          <button id="submit" disabled="disabled" tabindex="2">OK</button>
+      </form>
+  </body>
+</html>    
 ```
 
 
-**Step2**
-Load Phlorx afterwards like so...
-
-
-```
-<script type="text/javascript" src="path/to/phlorx/lib"></script>
-
-```
-
-
-**Step 3**
+**Step 2**
  Code to heart's content!
 
 
 ```
 <script type="text/javascript"> 
-       var sequenceStream = Phlorx.sequentially(2000, [10, 20, 30, 40, 50]).map(function(num){ 
-              return Math.pow(num, 2); 
+
+       var sequenceStream = Phlorx.sequentially(5000, [10, 20, 30, 40, 50]).map(function(num){ 
+               return Math.pow(num, 2); 
            });
-       sequenceStream.subscribe(function(sqrd_num){
-           alert(sqrd_num);
-       });
+
+	       sequenceStream.onValue(function(sqrd_num){
+	           console.log(sqrd_num);
+	       });
+
+	   var poll = Phlorx.viaPoll(1000, function(){ return Date.now(); });
+
+	       poll.onValue(function(data){
+	       	  var dt = new Date(data);
+
+	       	  // using jQuery here
+              $(".time").html('<span>'+dt.getHours()+':'+dt.getMinutes()+':'+dt.getSeconds()+'</span>');
+	       }).log();
+
+
+	   var keyStream = Phlorx.viaDOM("keyup", "#box");
+	   var clickStream = Phlorx.viaDOM("click", "#submit")
+
+	   var emptyInputStream = keyStream.filter(function(event){ event.target.length == 0; })
+
+	   emptyInputStream.onValue(function(data){
+            Phlorx.UI.DOM("#submit").attr("disabled","disabled");
+	   });
+
+	   var hasCharStream = keyStream.throttle(500).filter(function(event){  
+	   	                   return event.target.length > 0; 
+	   	   });
+
+	   var textStream = hasCharStream.filter(function(event){  
+	   	            event.keyCode == 20; 
+	   	   }).map(function(event){ 
+	   	   	       return event.target.value; 
+	   	   });
+
+	    textStream.onValue(function(){
+             Phlorx.UI.DOM("#submit").removeAttr("disabled");
+	    });
+
+
+        var requestStream = clickStream.map(function(event){
+            event.preventDefault();
+             
+        	var details = {}, url = event.target.form.action, sl = ([]).slice;
+
+        	sl.call(event.target.form.elements).forEach(function(el){
+                 return details[el.name] = el.value;
+        	});
+            
+            //event.target.form.action = "";
+
+            return {method:event.target.form.method, url:url, data:details, headers:{"Authorization":"Basic x48shdn3627ds="}};     
+        });
+
+        
+        var responseStream = requestStream.flatMap(function(request){
+             return Phlorx.viaPromise(Phlorx.ajax(request));
+        });
+
+        responseStream.log();
+                      
   </script>
   
   ```
@@ -56,5 +121,5 @@ I am open to start recieving PRs on code enhancements and changes. You can also 
 
 ## Extras
 
-> Code is 18KB in size (not minified)
-  Code is 7KB in size (minified)
+> Code is 58.2KB in size (not minified)
+  Code is 22.5KB in size (minified)
