@@ -1,18 +1,19 @@
 /*!
- * @projectname: Phlorx v0.0.2
+ * @projectname: Phlorx 
+ * @version: v0.0.2
+ * @file: Phlorx.js
  * @repo: https://www.github.com/isocroft/phlorx
  * @author(s): Okechukwu Ifeora (@isocroft)
- * @contributor(s): nil
- * @copyright: Copyright (c) 2016 @cdv
+ * @contributor(s): nil 
+ * @copyright: Synergixe™ Copyright(c) 2016 All rights reserved
+ * @desc: {light-weight, task efficient, JavaScript library for functional reactive programming inspired by Bacon.js & RxJS}
+ * @tags: {library, functional, flow-based}
  * @license: MIT  
  * @releasedate: 12/01/2016
- * @modifieddate : 28/07/2016
+ * @modifieddate : 17/08/2016
  *
- * Phlorx is a light-weight, task efficient, JavaScript library
- * for functional reactive programming inspired by Bacon.js &
- * RxJS
  *
- * It does not requires jQuery to work properly
+ * It does not requires jQuery to work properly ;)
  */
 
 window.Phlorx = (function(w, d, factory){
@@ -991,7 +992,7 @@ window.Phlorx = (function(w, d, factory){
 		
 	    b["prototype"] = b.fn;
 		
-		b.fn.init = function(selector){
+		b.fn.init = function PhlorxDOM(selector){
 		
 			var collections = [DOM.select(selector)];
 			
@@ -1004,10 +1005,41 @@ window.Phlorx = (function(w, d, factory){
 			     return collections[0];
 			};
 			
+			this.length = 0;
+			
 			return this;
-		}
+		};
 		
 		b.fn.init["prototype"] = {
+		     constrcutor:b.fn.init,
+		     poof:function(){
+                    while(this.length){
+                        this.pop();
+                    }
+                    return this.length;
+             },
+             toArray:function(){
+                 return [].slice.call(this);
+             },
+             push:function(item){
+				 var ln =this.length;
+				 if(item && "nodeType" in item){
+				 this[ln++] = item;
+				 }
+				 this.length = ln;
+             },
+             pop:function(){
+				 var ln = this.length,
+				 item = this[--ln];
+				 delete this[ln];
+				 this.length = ln;
+				 return item;
+             },
+             get:function(index){
+                 var ln = this.length,
+                 isNotNan = Number(index || {}); // Nan is a "falsey" value
+                 return !!isNotNan? (index < 0? this[ln + index] : this[index]) : this.toArray();
+             },
 		     css:function(opts){ var x = this.getCurrentCollection();  if(typeof opts == st) return DOM.get_css_property(x[0], opts);  b.fn.each(x, function(item){  for(var t in opts){ item.style.cssText += DOM.utils.decamelize(t,'-')+":"+opts[t]+";" }  }); return this; },
              offCss:function(prop){ if(prop===null) return; var g, rx, x = this.getCurrentCollection();  b.fn.each(x, function(item){ if(!d.all){ item.removeProperty(prop); }else{ rx=new RegExp(prop+"\\:([#!*%\\w]+);"), g=DOM.get_attrib(item, "style");  g=g.replace(rx, ""); item.cssText+=g; } }); return this; },
              next:function(){ var r, n, x =this.getCurrentCollection(); b.fn.each(x, function(item){ r = item.parentNode; n = item.nextSibling; if(n && r.childNodes.length > 1){ while (n !== null) { if (n.nodeType == 1) break; if (n.nodeType == 3) n = n.nextSibling; if (n.nodeType == 9) n = d; }}  }); return this.updateCollection(n); },
@@ -1031,8 +1063,8 @@ window.Phlorx = (function(w, d, factory){
 		Phlorx.UI.textFieldValue = function(textField){
 		     function value(event){ return event ? event.target.value : "" ; };
 			 return Phlorx.viaDOM("keyup", textField).map(value).toProp(value());
-		};
-		*/
+		};*/
+		
 		Phlorx.UI.DOM = function(selector){
 		    return new b.fn.init(selector);
 		}
@@ -1042,10 +1074,10 @@ window.Phlorx = (function(w, d, factory){
 			   PhlorxStreamsMap['binds'][stream.getEvent()] = d;
 			   if(typeof Binder === "function"){
 					  d.then(function(sink){
-						 Binder(sink[0]);
+						 return Binder(sink[0]);
 					  })
 		              .then(function(stopper){
-							stream.whenUnsubscribe(stopper);
+							stream.whenUnsubscribe(stopper[0]);
 					   });
 			  }
 			  return stream;
@@ -1174,7 +1206,7 @@ window.Phlorx = (function(w, d, factory){
 
 		Phlorx.viaPromise = function(promise){
 			  var $p_stream = this.workStream(null);
-			  PhlorxStreamsMap['promises'][uuid()] = promise;
+			  PhlorxStreamsMap['promises'][$p_stream.getEvent()] = $p_stream;
 			  if(promise && typeof promise.promise == "function" && (typeof promise.promise().then === "function")){  // according to the Promise/A+ spec, it should be a "thenable"
 					  if(typeof promise.then == "function"){
 							promise.then(function(data){
@@ -1329,11 +1361,46 @@ window.Phlorx = (function(w, d, factory){
 						  normaliseScope = function(e){
 						     return (e.indexOf('->', 0) > 0)? e.split('->', 2) : [];
 						  };
+						  
+						  /*!
+						   * [watchProperty] , [createPropertyBag] methods are based on the code snippets at #implementation
+						   * http://stackoverflow.com/questions/1759987/listening-for-variable-changes-in-javascript-or-jquery
+						   *
+						   * Credits to Luke Schafer
+						   */
 						 
-						    return {
-							
-						        acumulator:function(){
-								
+						  return {
+							    watchProperty:function(evt, propName, handler){
+								        var handle = handlers[evt][0]._props, currval;
+										try{
+										    currval = handle["get_"+propName]();
+										}catch(ex){
+										    currval = null;
+										}finally{
+											function callback(trigger_on_change){
+												if (handle["get_"+propName]() !== currval && trigger_on_change){
+													var temp = currval;
+													currval = handle["get_"+propName]();
+													handler.call(null, temp, currval); //(function(oldval, newval){ do something... })
+												}
+											}
+										}
+										return callback; 
+                                },
+						        createPropertyBag:function(evt){
+								    var handle;
+								    if(evt in handlers){
+									   handlers[evt][0]._props = new Object(); // making sure it is a reference object!
+									   handle = handlers[evt][0]._props;
+									}
+									
+									return function(name, initial){
+										var field = initial; // TODO: will have to use deep copy here (especially for non-primitive types) later in v0.0.3
+										if(handle !== void 0 && (!("get_"+name in handle))){
+										   handle["get_" + name] = function() { return field; };
+										   handle["set_" + name] = function(val) { field = val; };
+										}
+                                    }
 								},
 						        canLog:false,
                                 emit:function(evt){
@@ -1473,6 +1540,7 @@ window.Phlorx = (function(w, d, factory){
     var $event = event;
     var $queue = [];
     var $emitCore = ObserverCore(this); // bind a reference...
+	var $propertyBag = $emitCore.createPropertyBag(event); // create a [property bag] based on this event id...
     var $delayFn = function(fn, fx, threshold){
 
               if(!threshold || typeof threshold == "undefined"){
@@ -1497,6 +1565,10 @@ window.Phlorx = (function(w, d, factory){
 	    if(errorHandle === null){
 	        errorHandle = cb;
 		}
+	};
+	
+	this.toProp = function(initialValue){
+	   $propertyBag(" ", initialValue); // TODO: still adding property support for streams
 	};
 	
 	this.offError = function(){
@@ -1600,7 +1672,6 @@ window.Phlorx = (function(w, d, factory){
 		  $stream.onValue = function(callback){
 		       var _self = this;
 			   formerSubscribe.call(this, callback);
-			   console.log("lala", this.getEvent(), maps['binds']);
 			   if(this.getEvent() in maps['binds']){
 			       (maps['binds'][this.getEvent()]).resolve(function(data){
 				       stream = _self.getStream();

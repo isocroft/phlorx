@@ -19,7 +19,7 @@ are needed to get started.
 **Step 1** 
 Optionally load _jQuery_ into your web project and then load _Phlorx_ afterwards like so
 
-```
+```html
 <html lang="en">
    <head>
         <meta charset="utf-8">
@@ -44,7 +44,7 @@ Optionally load _jQuery_ into your web project and then load _Phlorx_ afterwards
  Code to heart's content!
 
 
-```
+```js
 <script type="text/javascript"> 
 
        var sequenceStream = Phlorx.sequentially(5000, [10, 20, 30, 40, 50]).map(function(num){ 
@@ -62,13 +62,13 @@ Optionally load _jQuery_ into your web project and then load _Phlorx_ afterwards
 
 	       	  // using jQuery here
               $(".time").html('<span>'+dt.getHours()+':'+dt.getMinutes()+':'+dt.getSeconds()+'</span>');
-	       }).log();
+	       });
 
 
 	   var keyStream = Phlorx.viaDOM("keyup", "#box");
 	   var clickStream = Phlorx.viaDOM("click", "#submit")
 
-	   var emptyInputStream = keyStream.filter(function(event){ event.target.length == 0; })
+	   var emptyInputStream = keyStream.filter(function(event){ event.target.value.length == 0; });
 
 	   emptyInputStream.onValue(function(data){
             Phlorx.UI.DOM("#submit").attr("disabled","disabled");
@@ -121,5 +121,5 @@ I am open to start recieving PRs on code enhancements and changes. You can also 
 
 ## Extras
 
-> Code is 58.2KB in size (not minified)
-  Code is 22.5KB in size (minified)
+> Code is 61.0KB in size (not minified)
+  Code is 23.7KB in size (minified)
