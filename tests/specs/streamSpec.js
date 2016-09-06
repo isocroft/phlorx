@@ -48,14 +48,30 @@ describe("Phlorx: the different features of a Phlorx stream", function() {
 						  
 						  }
 					},
-			        /*toBeInstanceOf:function(util, customEqualityTesters){
+			        toBeInstanceOf:function(util, customEqualityTesters){
 					      return {
 						      compare:function(actual, expected){
-							         (actual instanceof expected);
+						      	     if(!expected){
+						      	     	expected = function() {
+						      	     		// body...
+						      	     	}
+						      	     }
+
+							         var result = {};
+ 
+                                      result.pass = (actual instanceof expected);
+
+                                      if(result.pass){
+                                           result.message = 'instance matches this constructor';
+                                      }else{
+                                           result.message = 'instance does not match this constructor';
+                                      }
+
+							          return result;
 							  }
 						  
 						  }
-					},*/
+					},
 					toBeAFunction:function(util, customEqualityTesters){
 					    return {
 						       compare:function(actual, expected){
@@ -144,8 +160,8 @@ describe("Phlorx: the different features of a Phlorx stream", function() {
 			      });
 				  
 				 
-				  //  expect(val).toEqual(8);
-				// expect(Phlorx.interval).toHaveBeenCalled();
+				  // expect(val).toEqual(8);
+				  // expect(Phlorx.interval).toHaveBeenCalled();
 				 
 			
 			});
@@ -153,6 +169,16 @@ describe("Phlorx: the different features of a Phlorx stream", function() {
 			it("should have/present standard interfaces and throw errors where necessary", function() {
 			
 			      expect(Phlorx.ajax).toBeAFunction();
+
+			      expect(Phlorx.retry).toBeAFunction();
+
+			      expect(Phlorx.constant).toBeAFunction();
+
+			      expect(Phlorx.retry({}).toString()).toEqual("[object Stream]");
+
+			      expect(Phlorx.when).toBeAFunction();
+
+			      expect(Phlorx.when()).toBe(null);
 				  
 				  expect(Phlorx.ajax()).toBeAPromise();  
 			    

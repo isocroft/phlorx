@@ -1,6 +1,6 @@
 /*!
  * @projectname: Phlorx 
- * @version: v0.0.2
+ * @version: v0.0.3
  * @file: Phlorx.js
  * @repo: https://www.github.com/isocroft/phlorx
  * @author(s): Okechukwu Ifeora (@isocroft)
@@ -10,13 +10,13 @@
  * @tags: {library, functional, flow-based}
  * @license: MIT  
  * @releasedate: 12/01/2016
- * @modifieddate : 17/08/2016
+ * @modifieddate : 24/08/2016
  *
  *
  * It does not requires jQuery to work properly ;)
  */
 
-window.Phlorx = (function(w, d, factory){
+;(function(w, d, factory){
 
         factory.uuid = 0;
 		
@@ -28,6 +28,8 @@ window.Phlorx = (function(w, d, factory){
 	        $h = ({}).hasOwnProperty,
 	   
 	        $s = ([]).slice,
+			
+			noop = function(){},
 			
 	        getAttributeByName = function(obj, attrName){
     
@@ -379,7 +381,8 @@ window.Phlorx = (function(w, d, factory){
 		
 		    PhlorxStreamsMap = {
 				'binds':{},
-				'promises':{}
+				'promises':{},
+				'collects':{}
 		    }, 
 		
 		    uuid = function(){
@@ -399,7 +402,7 @@ window.Phlorx = (function(w, d, factory){
 			* Dustin Diaz
 			*
 			* @license MIT
-			* @
+			* @modified True
 			*/
 
             Qwery =  (!('querySelectorAll' in d) && function () {
@@ -850,7 +853,14 @@ window.Phlorx = (function(w, d, factory){
         
             },
 			unobserve:function(elem, etype, ehandle){
-			
+			     var IE_case = (('execScript' in window) && !($h.call(window, 'execScript'))),
+					 eventHandle = IE_case ? 'attachEvent' : 'addEventListener',
+			         all = elem.map(function(elm, index){
+				          return elm[eventHandle]((IE_case ? "on"+etype : etype), ehandle);
+				     });
+				     return all.reduce(function(a, b){ // make it an atomic task (all or nothing)
+				          return a & b;
+				     });
 			},
 			select: function(selector){
 			    return $s.call(Qwery(selector));
@@ -1079,7 +1089,7 @@ window.Phlorx = (function(w, d, factory){
 		              .then(function(stopper){
 							stream.whenUnsubscribe(stopper[0]);
 					   });
-			  }
+			   }
 			  return stream;
         };
 
@@ -1089,7 +1099,7 @@ window.Phlorx = (function(w, d, factory){
                      DOM.observe(DOM.select(selector), DOMEvent, sink);
 					 
 					 return function(){
-					     DOM.unobserve(DOM.select(selector), DOMEvent, sink);
+					      !!DOM.unobserve(DOM.select(selector), DOMEvent, sink);
 					 }
               });
         };
@@ -1111,26 +1121,70 @@ window.Phlorx = (function(w, d, factory){
 		};
 		
 	    Phlorx.viaCallback = function(fn){
-		    this.viaBinder(fn);
+		    return this.viaBinder(fn);
 		};
 		
 		Phlorx.viaNodeCallback = Phlorx.viaCallback;
 		
+		Phlorx.when = function(/* Varagrs */){
+		        if(arguments.length == 0){
+				   return null;
+				}
+				var len = arguments.length, streams = [], $S = this.workStream(null), temp;
+				for(var i=0; i < len;i+=2){
+				    temp = i + 1;
+					try{
+					   (arguments[i]||[]).forEach(function(stream){
+						    streams.push(stream.map(arguments[temp]));
+					   });
+					}catch(ex){}
+				}
+				streams.forEach(function(stream){
+				    stream.onValue(function(data){
+					    $S.fireAtCore(data);
+					});
+				});
+				PhlorxStreamsMap['collects'][uuid()] = $S;
+				return $S;
+		};
+		
+		Phlorx.constant = function(data){
+		    return Phlorx.basicStream(data, true);
+		};
+		
+		Phlorx.onValue = function(stream, subscriber){
+		     stream.onValue(subscriber);
+		};
+		
 		Phlorx.ajax = function(options, sync){
 		
-		            options = options || {}
+		            options = options || {};
 		            sync = sync || false;
 					
-					var xhr = null, deferred = new Futures();
+					var xhr = null, deferred = new Futures(), isIE = ('XDomainRequest' in w);
+					
+					if(!options.context){
+					    options.context = {};
+					}
+					
+					if(!options.beforeload){
+					   options.beforeload = noop;
+					}
 					
 					try{
 						    xhr = CreateMSXMLDocument();
 							if(xhr === null){
 							   xhr = new XMLHttpRequest();
+							   if(options.crossdomain && ('withCredentials' in xhr)){
+							      ;
+							   }
 							}
-							if(options.crossdomain && 'XDomainRequest' in w){
-							    xhr = new XDomainRequest();
-						    }
+							if(isIE){
+							   if(options.crossdomain)
+							        xhr = new XDomainRequest();
+						    }else{
+							    w.XDomainRequest = noop; // just a stub!
+							}
 					}catch(ex){}
 					 
 					
@@ -1148,25 +1202,28 @@ window.Phlorx = (function(w, d, factory){
 					   if(xhr instanceof w.XDomainRequest){
 					       xhr.open(options.method, options.url);
 					       xhr.onload = function(){
-						       deferred.resolve(requestComplete(xhr, {fakeStatus:200}).xhr);
+						       deferred.resolveWith(options.context,requestComplete(xhr, {fakeStatus:200}).xhr);
 						   }
 						   xhr.onerror = function(){
-						      deferred.reject(requestComplete(xhr, {fakeStatus:400}).xhr);
+						      deferred.rejectWith(options.context,requestComplete(xhr, {fakeStatus:400}).xhr);
 						   }
 						   xhr.ontimeout = function(){
-						      deferred.reject(requestComplete(xhr, {fakeStatus:0}).xhr);
+						      deferred.rejectWith(options.context,requestComplete(xhr, {fakeStatus:0}).xhr);
 						   }
 						   
-						   xhr.onprogress = function () {};
+						   xhr.onprogress = noop;
                            xhr.timeout = 0;
 					   }else{
 					        xhr.open(options.method, options.url, !sync);
 							xhr.onreadystatechange = function () {
+							    if(xhr.readyState === 2){
+								   options.beforeload(xhr);
+								}
 								if (xhr.readyState === 4) {
 								   if(xhr.status >= 400){
-								      deferred.reject(requestComplete(xhr, {status:xhr.status, error:true}).xhr);
+								      deferred.rejectWith(options.context,requestComplete(xhr, {status:xhr.status, error:true}).xhr);
 								   }else{
-									  deferred.resolve(requestComplete(xhr, {status:xhr.status, error:false}).xhr);
+									  deferred.resolveWith(options.context(requestComplete,xhr, {status:xhr.status, error:false}).xhr);
 								   }
 								}
 							};
@@ -1180,7 +1237,12 @@ window.Phlorx = (function(w, d, factory){
 					// https://github.com/jquery/jquery/blob/1.10.2/src/ajax/xhr.js#L97)
 					//
 					try {
-						xhr.send(options.data);
+					  setTimeout(function(){
+					      if(isIE && options.crossdomain){
+						     options.beforeload(xhr);
+						  }
+						  xhr.send(options.data);
+					  },1);
 					}
 					catch (ex) {
 						xhr = null;
@@ -1201,13 +1263,13 @@ window.Phlorx = (function(w, d, factory){
 		};
 		
 		Phlorx.later = function(delay, value){
-		    return  this.sequentially(delay, [value]);
+		    return this.sequentially(delay, [value]);
 		};
 
 		Phlorx.viaPromise = function(promise){
 			  var $p_stream = this.workStream(null);
 			  PhlorxStreamsMap['promises'][$p_stream.getEvent()] = $p_stream;
-			  if(promise && typeof promise.promise == "function" && (typeof promise.promise().then === "function")){  // according to the Promise/A+ spec, it should be a "thenable"
+			  if(promise && typeof promise.promise == "function" && (typeof promise.notify== "function")){  // according to the Promise/A+ spec, it should be a "thenable"
 					  if(typeof promise.then == "function"){
 							promise.then(function(data){
 								  $p_stream.fireAtCore.apply($p_stream, $s.call(arguments));
@@ -1256,7 +1318,34 @@ window.Phlorx = (function(w, d, factory){
  			 return stream;
 		};
 
-        return Phlorx;
+		/*!@section
+		 * Universal Modules Definition (UMD)
+		 */
+		
+        if(typeof exports === "object"
+		   &&typeof module !== "undefined"){ // NodeJS/CommonJS
+		   
+		         module.exports = Phlorx;
+				 
+		}else if(typeof define === "function" && define.amd){ //AMD
+		
+		        define([],function(){ return Phlorx; });
+				
+		}else{ // UA Global Object
+		
+				var g;
+				if(typeof window!=="undefined"){
+		                g=window;
+				}else if(typeof global!=="undefined"){
+						g=global;
+				}else if(typeof self!=="undefined"){
+					    g=self;
+				}else{
+					    g=this;
+				}
+				
+			g.Phlorx = Phlorx;
+		}
 		 
 }(this, this.document, function(hOwn, slice, w, maps){
 
@@ -1366,7 +1455,7 @@ window.Phlorx = (function(w, d, factory){
 						   * [watchProperty] , [createPropertyBag] methods are based on the code snippets at #implementation
 						   * http://stackoverflow.com/questions/1759987/listening-for-variable-changes-in-javascript-or-jquery
 						   *
-						   * Credits to Luke Schafer
+						   * Credits: Luke Schafer
 						   */
 						 
 						  return {
@@ -1664,7 +1753,6 @@ window.Phlorx = (function(w, d, factory){
 
 
  function DataEventStream(eventOrData, isBasic){   // DataEventStream [Implementer Class] extends Stream [Adapter Class]
-     
      var $stream = Stream.apply(this, [generateEventId(26)]);
      var self = this;
 	 if(isBasic){
@@ -1680,8 +1768,8 @@ window.Phlorx = (function(w, d, factory){
 						  return;
 					   }
 				       if(data instanceof Error){
-					      (stream.getErrorHandle())(data);
-						  return;
+					        (stream.getErrorHandle())(data);
+						     return;
 					   }
 					   stream.fireAtCore.apply(stream, slice.call(arguments));
 			       });
@@ -1700,11 +1788,22 @@ window.Phlorx = (function(w, d, factory){
 
  }
  
- /* @TODO: next set of commits
- DataEventStream.prototype.concat = function(){
  
+ DataEventStream.prototype.concat = function(){
+     var $stream = this.getStream();
  };
  
+ DataEventStream.prototype.assign = function(targetObj, targetObjMember){
+       var $SS = this.getStream();
+	   $SS.onValue(function(data){
+	        if(targetObj){
+			   targetObj[targetObjMember](data);
+			}
+	   });
+	   return null;
+ };
+ 
+ /* @TODO: next set of commits
  DataEventStream.prototype.zip = function(){
  
  };
@@ -1735,19 +1834,18 @@ window.Phlorx = (function(w, d, factory){
  DataEventStream.prototype.once = function(value){
      var $S = this.getStream();
 	 var $o_stream = new DataEventStream(value, true);
-	 
 	 return $o_stream.take(1);
  };
 
  DataEventStream.prototype.map = function(callback){
-                 if(typeof callback != "function"){
-                        throw new TypeError("first argument must be a function");
-                  }
-                  var $S = this.getStream();
-                  var $_stream = new DataEventStream(null);
-                  
-                  $S.linkStream($_stream, callback);
-                  return $_stream;
+		 if(typeof callback != "function"){
+				throw new TypeError("first argument must be a function");
+		  }
+		  var $S = this.getStream();
+		  var $_stream = new DataEventStream(null);
+		  
+		  $S.linkStream($_stream, callback);
+		  return $_stream;
  };
 
  DataEventStream.prototype.mergeToNew = function(stream){

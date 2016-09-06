@@ -1,0 +1,42 @@
+{
+ "name":"Phlorx",
+ "version":"0.0.3",
+ "description":"light-weight, task efficient, JavaScript library for functional reactive programming inspired by Bacon.js & RxJS",
+ "scripts":{
+    "lint":"grunt"
+ },
+ "author": {
+    "name": "Ifeora Okechukwu",
+    "email": "isocroft@gmail.com"
+  },
+  "contributors": [
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/isocroft/phlorx"
+  },
+  "dependencies": {
+  
+  },
+  "homepage": "https://github.com/isocroft/phlorx",
+  "devDependencies": {
+    "jasmine-core": "^2.2.0",
+    "karma": "^0.12.31",
+    "karma-firefox-launcher": "^0.1.4",
+    "karma-jasmine": "^0.3.5"
+  },
+  "engines": {
+    "node": ">= 0.10.25"
+  },
+  "files": [
+    "LICENSE",
+    "README.md",
+    "src/Phlorx.js",
+    "dist/Phlorx.min.js"
+  ],
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/isocroft/phlorx/issues"
+  }
+}

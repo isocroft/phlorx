@@ -41,7 +41,7 @@ Optionally load _jQuery_ into your web project and then load _Phlorx_ afterwards
 
 
 **Step 2**
- Code to heart's content!
+ Code to heart's content! **Tip:** You can also use [mithrill](http://mithril.js.org/) to include __jsx__ templating in your application stack with __Phlorx__
 
 
 ```js
@@ -75,11 +75,11 @@ Optionally load _jQuery_ into your web project and then load _Phlorx_ afterwards
 	   });
 
 	   var hasCharStream = keyStream.throttle(500).filter(function(event){  
-	   	                   return event.target.length > 0; 
+	   	           return (event.target.length > 0); 
 	   	   });
 
 	   var textStream = hasCharStream.filter(function(event){  
-	   	            event.keyCode == 20; 
+	   	           return (event.keyCode == 20); 
 	   	   }).map(function(event){ 
 	   	   	       return event.target.value; 
 	   	   });
@@ -89,7 +89,7 @@ Optionally load _jQuery_ into your web project and then load _Phlorx_ afterwards
 	    });
 
 
-        var requestStream = clickStream.map(function(event){
+      var requestStream = clickStream.map(function(event){
             event.preventDefault();
              
         	var details = {}, url = event.target.form.action, sl = ([]).slice;
@@ -100,15 +100,15 @@ Optionally load _jQuery_ into your web project and then load _Phlorx_ afterwards
             
             //event.target.form.action = "";
 
-            return {method:event.target.form.method, url:url, data:details, headers:{"Authorization":"Basic x48shdn3627ds="}};     
-        });
+            return {method:event.target.form.method, url:url, data:details, crossdomain:true, headers:{"Authorization":"Basic x48shdn3627ds="}};     
+      });
 
         
-        var responseStream = requestStream.flatMap(function(request){
+      var responseStream = requestStream.flatMap(function(request){
              return Phlorx.viaPromise(Phlorx.ajax(request));
-        });
+      });
 
-        responseStream.log();
+      responseStream.log();
                       
   </script>
   
