@@ -5,7 +5,7 @@
  * @repo: https://www.github.com/isocroft/phlorx
  * @author(s): Okechukwu Ifeora (@isocroft)
  * @contributor(s): nil 
- * @copyright: Synergixe™ Copyright(c) 2016 All rights reserved
+ * @copyright: Synergixe™ Copyright(c) 2016  - 2017 All rights reserved
  * @desc: {light-weight, task efficient, JavaScript library for functional reactive programming inspired by Bacon.js & RxJS}
  * @tags: {library, functional, flow-based}
  * @license: MIT  
@@ -13,7 +13,7 @@
  * @modifieddate : 24/08/2016
  *
  *
- * It does not requires jQuery to work properly ;)
+ * It does not requires jQuery to work ;)
  */
 
 ;(function(w, d, factory){
@@ -81,8 +81,8 @@
 							// using 'finished' flag to avoid triggering events multiple times
 							control.finished = true;
 
-							notFound = (httpStatus === 404);
-							if ((httpStatus >= 200 && httpStatus < 400) || !notFound) {
+							notFoundOk = (httpStatus === 404);
+							if ((httpStatus >= 200 && httpStatus < 400) || !notFoundOk) {
 								
 									requestCompleteResult = {
 										err: null,
@@ -99,6 +99,7 @@
 								};
 								
 								if (httpStatus === 0) {
+									
 									throw new Error('Server Offline Or Unavailable');
 								}
 								
@@ -1202,7 +1203,7 @@
 					   if(xhr instanceof w.XDomainRequest){
 					       xhr.open(options.method, options.url);
 					       xhr.onload = function(){
-						       deferred.resolveWith(options.context,requestComplete(xhr, {fakeStatus:200}).xhr);
+						       deferred.resolveWith(options.context, requestComplete(xhr, {fakeStatus:200}).xhr);
 						   }
 						   xhr.onerror = function(){
 						      deferred.rejectWith(options.context,requestComplete(xhr, {fakeStatus:400}).xhr);
@@ -1221,9 +1222,9 @@
 								}
 								if (xhr.readyState === 4) {
 								   if(xhr.status >= 400){
-								      deferred.rejectWith(options.context,requestComplete(xhr, {status:xhr.status, error:true}).xhr);
+								      deferred.rejectWith(options.context, requestComplete(xhr, {status:xhr.status, error:true}).xhr);
 								   }else{
-									  deferred.resolveWith(options.context(requestComplete,xhr, {status:xhr.status, error:false}).xhr);
+									  deferred.resolveWith(options.context, requestComplete(xhr, {status:xhr.status, error:false}).xhr);
 								   }
 								}
 							};
@@ -1232,7 +1233,7 @@
 
 					//
 					// research indicates that IE is known to just throw exceptions
-					// on .send and it seems everyone pretty much just ignores them
+					// on {xhr.send(...)} and it seems everyone pretty much just ignores them
 					// including jQuery (https://github.com/jquery/jquery/blob/1.10.2/src/ajax.js#L549
 					// https://github.com/jquery/jquery/blob/1.10.2/src/ajax/xhr.js#L97)
 					//
@@ -1242,10 +1243,12 @@
 						     options.beforeload(xhr);
 						  }
 						  xhr.send(options.data);
-					  },1);
+					  },0);
 					}
 					catch (ex) {
-						xhr = null;
+						setTimeout(function(){
+							deferred.rejectWith(options.context, requestComplete(xhr, {status:xhr.status, error:true, 'extras':[ex]}).xhr);
+						},0);
 					}
 
 					return deferred.promise();
