@@ -1,5 +1,7 @@
 # Phlorx
 
+[![Build Status](https://travis-ci.org/isocroft/Phlorx.svg?branch=master)](https://travis-ci.org/isocroft/Phlorx)
+
 Phlorx is a light-weight, task efficient, fault tolerant JavaScript library for functional reactive programming inspired by Bacon.js &  RxJS. It does not require jQuery to work. But you could use jQuery with Phlorx if you like.
 
 ## Browser Support
